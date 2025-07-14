@@ -60,8 +60,6 @@ RainCheck uses weather data from [Yr.no](https://yr.no), a free weather service 
 
 ## Privacy
 
-RainCheck respects your privacy:
-
 - Location data is only used for weather API requests
 - No personal data is stored or transmitted
 - All weather requests are made directly to Yr.no
