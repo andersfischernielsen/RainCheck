@@ -26,10 +26,10 @@ RainCheck provides four distinct advisory states:
 
 ## Implementation
 
-2. **Route Analysis**: Points are calculated along a given route (every ~200-500 meters)
-3. **Weather Sampling**: Precipitation forecasts are fetched for each point from the Yr.no API
-4. **Searching**: Data is combined to find the worst conditions along the route
-5. **Actionable Advice**: Clear time-based recommendations in are shown in the menu bar
+1. **Route Analysis**: Points are calculated along a given route (every ~200-500 meters)
+2. **Weather Sampling**: Precipitation forecasts are fetched for each point from the Yr.no API
+3. **Searching**: Data is combined to find the worst conditions along the route
+4. **Actionable Advice**: Clear time-based recommendations in are shown in the menu bar
 
 ## Usage
 
