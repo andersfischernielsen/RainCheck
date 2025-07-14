@@ -50,13 +50,13 @@ class WeatherService: @unchecked Sendable {
         let endCoordinate = try await geocodeLocation(endLocation)
 
         let routeDistance = calculateRouteDistance(from: startCoordinate, to: endCoordinate)
-        print("🚴‍♀️ Analyzing route: \(startLocation) → \(endLocation)")
-        print("📏 Route distance: \(String(format: "%.1f", routeDistance / 1000))km")
+        print("Analyzing route: \(startLocation) → \(endLocation)")
+        print("Route distance: \(String(format: "%.1f", routeDistance / 1000))km")
 
         let routePoints = calculateRoutePoints(from: startCoordinate, to: endCoordinate)
         let deduplicatedPoints = deduplicateCloseCoordinates(routePoints)
 
-        print("📍 Sampling weather at \(deduplicatedPoints.count) points along the route")
+        print("Sampling weather at \(deduplicatedPoints.count) points along the route")
 
         var allWeatherData: [[(Date, Double)]] = []
         for coordinate in deduplicatedPoints {
@@ -121,17 +121,17 @@ class WeatherService: @unchecked Sendable {
 
         let rainPeriods = combined.filter { $0.1 > 0 }
         if !rainPeriods.isEmpty {
-            print("🌧️ Rain detected at \(rainPeriods.count) time periods along the route")
+            print("Rain detected at \(rainPeriods.count) time periods along the route")
             let maxRain = rainPeriods.max(by: { $0.1 < $1.1 })
             if let maxRain = maxRain {
                 let formatter = DateFormatter()
                 formatter.timeStyle = .short
                 print(
-                    "☔ Maximum precipitation: \(String(format: "%.1f", maxRain.1))mm at \(formatter.string(from: maxRain.0))"
+                    "Maximum precipitation: \(String(format: "%.1f", maxRain.1))mm at \(formatter.string(from: maxRain.0))"
                 )
             }
         } else {
-            print("☀️ No rain expected along the route for the next 2 hours")
+            print("No rain expected along the route for the next 2 hours")
         }
 
         return combined
