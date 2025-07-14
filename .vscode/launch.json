@@ -1,0 +1,22 @@
+{
+  "configurations": [
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:RainCheck}",
+      "name": "Debug RainCheck",
+      "program": "${workspaceFolder:RainCheck}/.build/debug/RainCheck",
+      "preLaunchTask": "swift: Build Debug RainCheck"
+    },
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:RainCheck}",
+      "name": "Release RainCheck",
+      "program": "${workspaceFolder:RainCheck}/.build/release/RainCheck",
+      "preLaunchTask": "swift: Build Release RainCheck"
+    }
+  ]
+}
