@@ -58,10 +58,6 @@ The text next to the icon shows timing:
 
 RainCheck uses weather data from [Yr.no](https://yr.no), a free weather service provided by the Norwegian Meteorological Institute.
 
-## Contributing
-
-Contributions are welcome! Please feel free to submit pull requests, report bugs, or suggest new features.
-
 ## Privacy
 
 RainCheck respects your privacy:
