@@ -77,7 +77,12 @@ jobs:
           mkdir -p release/RainCheck.app/Contents/Resources
           cp release/RainCheck release/RainCheck.app/Contents/MacOS/
 
-          # Create Info.plist
+          if [ -f Resources/AppIcon.icns ]; then
+            cp Resources/AppIcon.icns release/RainCheck.app/Contents/Resources/
+          elif [ -f AppIcon.icns ]; then
+            cp AppIcon.icns release/RainCheck.app/Contents/Resources/
+          fi
+
           cat > release/RainCheck.app/Contents/Info.plist << 'EOF'
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -97,6 +102,8 @@ jobs:
               <string>${{ steps.tag.outputs.tag }}</string>
               <key>CFBundleVersion</key>
               <string>${{ steps.tag.outputs.tag }}</string>
+              <key>CFBundleIconFile</key>
+              <string>AppIcon</string>
               <key>LSMinimumSystemVersion</key>
               <string>13.0</string>
               <key>LSUIElement</key>
@@ -127,7 +134,6 @@ jobs:
         run: |
           TAG_NAME="${{ steps.tag.outputs.tag }}"
 
-          # Get previous tag for changelog
           PREV_TAG=$(git tag --sort=-version:refname | grep -A 1 "$TAG_NAME" | tail -n 1)
 
           if [ -n "$PREV_TAG" ] && [ "$PREV_TAG" != "$TAG_NAME" ]; then
