@@ -24,6 +24,40 @@ RainCheck provides four distinct advisory states:
 
 ![RainCheck States](Images/states.png)
 
+## Installation
+
+### Requirements
+
+- macOS 13.0 or later
+- Swift 6.1 or later (for building from source)
+
+### Releases
+
+1. Download [the latest release](https://github.com/andersfischernielsen/RainCheck/releases)
+2. Unzip the app
+3. Open the app
+   - If needed, grant permission to run the app in _System Settings_ > _Privacy & Security_
+
+### Building from Source
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/yourusername/RainCheck.git
+   cd RainCheck
+   ```
+
+2. Build the application:
+
+   ```bash
+   swift build -c release
+   ```
+
+3. Run the application:
+   ```bash
+   swift run
+   ```
+
 ## Implementation
 
 1. **Route Analysis**: Points are calculated along a given route (every ~200-500 meters)
@@ -64,40 +98,6 @@ RainCheck uses weather data from [Yr.no](https://yr.no), a free weather service 
 - No personal data is stored or transmitted
 - All weather requests are made directly to Yr.no
 - No analytics or tracking
-
-## Installation
-
-### Requirements
-
-- macOS 13.0 or later
-- Swift 6.1 or later (for building from source)
-
-### Releases
-
-1. Download [the latest release](https://github.com/andersfischernielsen/RainCheck/releases)
-2. Unzip the app
-3. Open the app
-   - If needed, grant permission to run the app in _System Settings_ > _Privacy & Security_
-
-### Building from Source
-
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/yourusername/RainCheck.git
-   cd RainCheck
-   ```
-
-2. Build the application:
-
-   ```bash
-   swift build -c release
-   ```
-
-3. Run the application:
-   ```bash
-   swift run
-   ```
 
 ## Acknowledgments
 
