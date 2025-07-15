@@ -29,7 +29,7 @@ RainCheck provides four distinct advisory states:
 ### Requirements
 
 - macOS 13.0 or later
-- Swift 6.1 or later (for building from source)
+- Swift 6 or later (for building from source)
 
 ### Releases
 
