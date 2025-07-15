@@ -61,9 +61,16 @@ RainCheck provides four distinct advisory states:
 ## Implementation
 
 1. **Route Analysis**: Points are calculated along a given route (every ~200-500 meters)
-2. **Weather Sampling**: Precipitation forecasts are fetched for each point from the Yr.no API
-3. **Searching**: Data is combined to find the worst conditions along the route
-4. **Actionable Advice**: Clear time-based recommendations in are shown in the menu bar
+2. **Multi-Source Weather**: Precipitation forecasts are fetched from both Yr.no and Apple WeatherKit APIs
+3. **Route Sampling**: Weather data is combined to find the worst conditions along the route
+4. **Actionable Advice**: Clear time-based recommendations are shown in the menu bar
+
+### Weather Data Sources
+
+RainCheck uses a dual-source approach for maximum accuracy:
+
+- [Yr.no](https://yr.no) (Norwegian Meteorological Institute) - 70% weight
+- Apple WeatherKit - 30% weight
 
 ## Usage
 
@@ -88,9 +95,24 @@ The text next to the icon shows timing:
 - `15m` = Rain starts/stops in 15 minutes
 - `1h30m` = Rain starts/stops in 1 hour and 30 minutes
 
-## Data Source
+## Data Sources
 
-RainCheck uses weather data from [Yr.no](https://yr.no), a free weather service provided by the Norwegian Meteorological Institute.
+RainCheck uses a dual-source weather approach for enhanced accuracy:
+
+### Primary Data Source
+
+- **[Yr.no](https://yr.no)**: Free weather service from the Norwegian Meteorological Institute
+- **Weight**: 70% in combined forecasts
+- **Coverage**: Global, high-quality European data
+
+### Secondary Data Source
+
+- **Apple WeatherKit**: Apple's weather service
+- **Weight**: 30% in combined forecasts
+- **Fallback**: Automatic fallback to Yr.no only if WeatherKit unavailable
+- **Note**: Requires proper app entitlements for full functionality
+
+The weighted combination of both sources provides more reliable precipitation forecasts than relying on a single source.
 
 ## Privacy
 

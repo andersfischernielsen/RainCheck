@@ -53,7 +53,7 @@ public struct ContentView: View {
                     .padding(.top, 2)
             }
 
-            Text("Weather data provided by Yr.no")
+            Text("Weather data provided by Yr.no and Apple.")
                 .font(.footnote)
                 .foregroundColor(.secondary)
                 .italic()
