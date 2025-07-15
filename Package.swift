@@ -16,7 +16,10 @@ let package = Package(
         .target(name: "RainCheckLib"),
         .executableTarget(
             name: "RainCheck",
-            dependencies: ["RainCheckLib"]
+            dependencies: ["RainCheckLib"],
+            resources: [
+                .copy("Assets.xcassets")
+            ]
         ),
     ]
 )

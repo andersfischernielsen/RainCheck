@@ -77,7 +77,9 @@ jobs:
           mkdir -p release/RainCheck.app/Contents/Resources
           cp release/RainCheck release/RainCheck.app/Contents/MacOS/
 
-          if [ -f Resources/AppIcon.icns ]; then
+          if [ -d Sources/RainCheck/Assets.xcassets/AppIcon.appiconset ]; then
+            iconutil -c icns Sources/RainCheck/Assets.xcassets/AppIcon.appiconset -o release/RainCheck.app/Contents/Resources/AppIcon.icns
+          elif [ -f Resources/AppIcon.icns ]; then
             cp Resources/AppIcon.icns release/RainCheck.app/Contents/Resources/
           elif [ -f AppIcon.icns ]; then
             cp AppIcon.icns release/RainCheck.app/Contents/Resources/
