@@ -1,0 +1,177 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag for the release (e.g., v1.0.0)"
+        required: true
+        type: string
+
+env:
+  SWIFT_VERSION: "6.1"
+
+jobs:
+  build-and-release:
+    name: Build and Release RainCheck
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Verify Swift version
+        run: swift --version
+
+      - name: Clean previous builds
+        run: swift package clean
+
+      - name: Resolve dependencies
+        run: swift package resolve
+
+      - name: Build in release mode
+        run: swift build -c release --arch arm64 --arch x86_64
+
+      - name: Create release directory
+        run: mkdir -p release
+
+      - name: Copy built executable
+        run: |
+          cp .build/release/RainCheck release/
+          chmod +x release/RainCheck
+
+      - name: Create app bundle (optional for macOS distribution)
+        run: |
+          mkdir -p release/RainCheck.app/Contents/MacOS
+          mkdir -p release/RainCheck.app/Contents/Resources
+          cp release/RainCheck release/RainCheck.app/Contents/MacOS/
+
+          # Create Info.plist
+          cat > release/RainCheck.app/Contents/Info.plist << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleDisplayName</key>
+              <string>RainCheck</string>
+              <key>CFBundleExecutable</key>
+              <string>RainCheck</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.github.andersfischernielsen.raincheck</string>
+              <key>CFBundleName</key>
+              <string>RainCheck</string>
+              <key>CFBundlePackageType</key>
+              <string>APPL</string>
+              <key>CFBundleShortVersionString</key>
+              <string>${{ github.ref_name }}</string>
+              <key>CFBundleVersion</key>
+              <string>${{ github.ref_name }}</string>
+              <key>LSMinimumSystemVersion</key>
+              <string>13.0</string>
+              <key>LSUIElement</key>
+              <true/>
+              <key>NSHumanReadableCopyright</key>
+              <string>Copyright © 2025. All rights reserved.</string>
+              <key>NSPrincipalClass</key>
+              <string>NSApplication</string>
+          </dict>
+          </plist>
+          EOF
+
+      - name: Create ZIP archive
+        run: |
+          cd release
+          zip -r RainCheck-${{ github.ref_name }}-macOS.zip RainCheck.app
+          zip RainCheck-${{ github.ref_name }}-executable.zip RainCheck
+          cd ..
+
+      - name: Calculate checksums
+        run: |
+          cd release
+          shasum -a 256 *.zip > checksums.txt
+          cd ..
+
+      - name: Get tag name
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          TAG_NAME="${{ steps.tag.outputs.tag }}"
+
+          # Get previous tag for changelog
+          PREV_TAG=$(git tag --sort=-version:refname | grep -A 1 "$TAG_NAME" | tail -n 1)
+
+          if [ -n "$PREV_TAG" ] && [ "$PREV_TAG" != "$TAG_NAME" ]; then
+            echo "## What's Changed" > release_notes.md
+            echo "" >> release_notes.md
+            git log --pretty=format:"- %s (%h)" "$PREV_TAG".."$TAG_NAME" >> release_notes.md
+            echo "" >> release_notes.md
+          else
+            echo "## RainCheck ${TAG_NAME}" > release_notes.md
+            echo "" >> release_notes.md
+            echo "Initial release of RainCheck - a macOS menu bar app for rain forecasts along cycling routes." >> release_notes.md
+            echo "" >> release_notes.md
+          fi
+
+          echo "## Installation" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### App Bundle (Recommended)" >> release_notes.md
+          echo "1. Download \`RainCheck-${TAG_NAME}-macOS.zip\`" >> release_notes.md
+          echo "2. Extract the ZIP file" >> release_notes.md
+          echo "3. Move \`RainCheck.app\` to your Applications folder" >> release_notes.md
+          echo "4. Right-click the app and select \"Open\" (required for unsigned apps)" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### Command Line Executable" >> release_notes.md
+          echo "1. Download \`RainCheck-${TAG_NAME}-executable.zip\`" >> release_notes.md
+          echo "2. Extract the ZIP file" >> release_notes.md
+          echo "3. Run \`./RainCheck\` from the terminal" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "## System Requirements" >> release_notes.md
+          echo "- macOS 13.0 or later" >> release_notes.md
+          echo "- Intel or Apple Silicon Mac" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "## Checksums" >> release_notes.md
+          echo "\`\`\`" >> release_notes.md
+          cat release/checksums.txt >> release_notes.md
+          echo "\`\`\`" >> release_notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: RainCheck ${{ steps.tag.outputs.tag }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+          files: |
+            release/RainCheck-${{ steps.tag.outputs.tag }}-macOS.zip
+            release/RainCheck-${{ steps.tag.outputs.tag }}-executable.zip
+            release/checksums.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: RainCheck-${{ steps.tag.outputs.tag }}
+          path: |
+            release/
+            !release/RainCheck
+          retention-days: 30
