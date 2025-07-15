@@ -48,7 +48,7 @@ jobs:
 
       - name: Copy built executable
         run: |
-          cp .build/release/RainCheck release/
+          cp .build/apple/Products/Release/RainCheck release/
           chmod +x release/RainCheck
 
       - name: Create app bundle (optional for macOS distribution)
