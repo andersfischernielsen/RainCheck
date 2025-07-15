@@ -1,0 +1,58 @@
+{
+  "fill" : {
+    "automatic-gradient" : "srgb:0.92143,0.92145,0.92144,1.00000"
+  },
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "image-name" : "sun.svg",
+          "name" : "sun",
+          "position" : {
+            "scale" : 0.15,
+            "translation-in-points" : [
+              -150,
+              -300
+            ]
+          }
+        },
+        {
+          "image-name" : "rain.svg",
+          "name" : "rain",
+          "position" : {
+            "scale" : 0.04,
+            "translation-in-points" : [
+              200,
+              -300
+            ]
+          }
+        },
+        {
+          "image-name" : "Bicycle 2.svg",
+          "name" : "Bicycle 2",
+          "position" : {
+            "scale" : 0.55,
+            "translation-in-points" : [
+              0,
+              120
+            ]
+          }
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}
