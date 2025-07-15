@@ -19,6 +19,9 @@ jobs:
   build-and-release:
     name: Build and Release
     runs-on: macos-latest
+    permissions:
+      contents: write
+      packages: write
 
     steps:
       - name: Checkout code
@@ -51,6 +54,23 @@ jobs:
           cp .build/apple/Products/Release/RainCheck release/
           chmod +x release/RainCheck
 
+      - name: Get tag name
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create tag if workflow_dispatch
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "${{ steps.tag.outputs.tag }}" -m "Release ${{ steps.tag.outputs.tag }}"
+          git push origin "${{ steps.tag.outputs.tag }}"
+
       - name: Create app bundle (optional for macOS distribution)
         run: |
           mkdir -p release/RainCheck.app/Contents/MacOS
@@ -74,9 +94,9 @@ jobs:
               <key>CFBundlePackageType</key>
               <string>APPL</string>
               <key>CFBundleShortVersionString</key>
-              <string>${{ github.ref_name }}</string>
+              <string>${{ steps.tag.outputs.tag }}</string>
               <key>CFBundleVersion</key>
-              <string>${{ github.ref_name }}</string>
+              <string>${{ steps.tag.outputs.tag }}</string>
               <key>LSMinimumSystemVersion</key>
               <string>13.0</string>
               <key>LSUIElement</key>
@@ -92,8 +112,8 @@ jobs:
       - name: Create ZIP archive
         run: |
           cd release
-          zip -r RainCheck-${{ github.ref_name }}-macOS.zip RainCheck.app
-          zip RainCheck-${{ github.ref_name }}-executable.zip RainCheck
+          zip -r RainCheck-${{ steps.tag.outputs.tag }}-macOS.zip RainCheck.app
+          zip RainCheck-${{ steps.tag.outputs.tag }}-executable.zip RainCheck
           cd ..
 
       - name: Calculate checksums
@@ -101,15 +121,6 @@ jobs:
           cd release
           shasum -a 256 *.zip > checksums.txt
           cd ..
-
-      - name: Get tag name
-        id: tag
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
-          else
-            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
-          fi
 
       - name: Generate release notes
         id: release_notes
