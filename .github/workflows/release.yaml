@@ -78,7 +78,19 @@ jobs:
           cp release/RainCheck release/RainCheck.app/Contents/MacOS/
 
           if [ -d Sources/RainCheck/Assets.xcassets/AppIcon.appiconset ]; then
-            iconutil -c icns Sources/RainCheck/Assets.xcassets/AppIcon.appiconset -o release/RainCheck.app/Contents/Resources/AppIcon.icns
+            mkdir -p AppIcon.iconset
+            cp Sources/RainCheck/Assets.xcassets/AppIcon.appiconset/icon_16x16.png AppIcon.iconset/icon_16x16.png
+            cp Sources/RainCheck/Assets.xcassets/AppIcon.appiconset/icon_16x16@2x.png AppIcon.iconset/icon_16x16@2x.png
+            cp Sources/RainCheck/Assets.xcassets/AppIcon.appiconset/icon_32x32.png AppIcon.iconset/icon_32x32.png
+            cp Sources/RainCheck/Assets.xcassets/AppIcon.appiconset/icon_32x32@2x.png AppIcon.iconset/icon_32x32@2x.png
+            cp Sources/RainCheck/Assets.xcassets/AppIcon.appiconset/icon_128x128.png AppIcon.iconset/icon_128x128.png
+            cp Sources/RainCheck/Assets.xcassets/AppIcon.appiconset/icon_128x128@2x.png AppIcon.iconset/icon_128x128@2x.png
+            cp Sources/RainCheck/Assets.xcassets/AppIcon.appiconset/icon_256x256.png AppIcon.iconset/icon_256x256.png
+            cp Sources/RainCheck/Assets.xcassets/AppIcon.appiconset/icon_256x256@2x.png AppIcon.iconset/icon_256x256@2x.png
+            cp Sources/RainCheck/Assets.xcassets/AppIcon.appiconset/icon_512x512.png AppIcon.iconset/icon_512x512.png
+            cp Sources/RainCheck/Assets.xcassets/AppIcon.appiconset/icon_512x512@2x.png AppIcon.iconset/icon_512x512@2x.png
+            iconutil -c icns AppIcon.iconset -o release/RainCheck.app/Contents/Resources/AppIcon.icns
+            rm -rf AppIcon.iconset
           elif [ -f Resources/AppIcon.icns ]; then
             cp Resources/AppIcon.icns release/RainCheck.app/Contents/Resources/
           elif [ -f AppIcon.icns ]; then
