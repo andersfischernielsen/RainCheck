@@ -72,6 +72,13 @@ RainCheck uses weather data from [Yr.no](https://yr.no), a free weather service 
 - macOS 13.0 or later
 - Swift 6.1 or later (for building from source)
 
+### Releases
+
+1. Download [the latest release](https://github.com/andersfischernielsen/RainCheck/releases)
+2. Unzip the app
+3. Open the app
+   - If needed, grant permission to run the app in _System Settings_ > _Privacy & Security_
+
 ### Building from Source
 
 1. Clone the repository:
