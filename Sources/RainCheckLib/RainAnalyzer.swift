@@ -113,9 +113,9 @@ struct RainAnalyzer {
         let position = Double(maxRainIndex) / Double(totalPoints - 1)
 
         if position < 0.3 {
-            return "near \(routeInfo.startLocation)"
+            return "near \(formatLocationName(routeInfo.startLocation))"
         } else if position > 0.7 {
-            return "near \(routeInfo.endLocation)"
+            return "near \(formatLocationName(routeInfo.endLocation))"
         } else {
             return "mid-route"
         }
@@ -141,13 +141,18 @@ struct RainAnalyzer {
         let maxAvg = max(startAvg, middleAvg, endAvg)
 
         if startAvg == maxAvg && startAvg > 0.2 {
-            return "heaviest near start"
+            return "heaviest near \(formatLocationName(routeInfo.startLocation))"
         } else if endAvg == maxAvg && endAvg > 0.2 {
-            return "heaviest near destination"
+            return "heaviest near \(formatLocationName(routeInfo.endLocation))"
         } else if middleAvg == maxAvg && middleAvg > 0.2 {
             return "heaviest mid-route"
         }
 
         return "throughout route"
+    }
+
+    private static func formatLocationName(_ location: String) -> String {
+        return location.components(separatedBy: ",").first?.trimmingCharacters(in: .whitespaces)
+            ?? location
     }
 }
