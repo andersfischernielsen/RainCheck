@@ -14,12 +14,7 @@ struct YrWeatherData: Decodable {
     }
 
     struct TimeseriesData: Decodable {
-        let instant: Instant
         let next1Hours: NextHours?
-
-        struct Instant: Decodable {
-            let details: Details
-        }
 
         struct NextHours: Decodable {
             let details: Details
@@ -27,10 +22,18 @@ struct YrWeatherData: Decodable {
 
         struct Details: Decodable {
             let precipitationAmount: Double?
+            let precipitationAmountMax: Double?
+            let precipitationAmountMin: Double?
 
             enum CodingKeys: String, CodingKey {
                 case precipitationAmount = "precipitation_amount"
+                case precipitationAmountMax = "precipitation_amount_max"
+                case precipitationAmountMin = "precipitation_amount_min"
             }
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case next1Hours = "next_1_hours"
         }
     }
 }
@@ -81,7 +84,7 @@ class WeatherService: @unchecked Sendable {
         Date, Double
     )] {
         let urlString =
-            "https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=\(coordinate.latitude)&lon=\(coordinate.longitude)"
+            "https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=\(coordinate.latitude)&lon=\(coordinate.longitude)"
         guard let url = URL(string: urlString) else {
             throw WeatherServiceError.invalidLocation
         }
@@ -91,12 +94,9 @@ class WeatherService: @unchecked Sendable {
 
         let (data, _) = try await session.data(for: request)
         let decoded = try JSONDecoder().decode(YrWeatherData.self, from: data)
-
         return decoded.properties.timeseries.compactMap { timeseries in
             guard let time = ISO8601DateFormatter().date(from: timeseries.time) else { return nil }
-
-            let precipitation = timeseries.data.next1Hours?.details.precipitationAmount ?? 0.0
-
+            let precipitation = timeseries.data.next1Hours?.details.precipitationAmountMax ?? 0.0
             return (time, precipitation)
         }.prefix(2).map { $0 }
     }
