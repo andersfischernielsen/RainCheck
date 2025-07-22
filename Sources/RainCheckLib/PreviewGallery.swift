@@ -105,6 +105,10 @@ struct PreviewGallery: View {
         case .partialRain(let start, let end, let maxIntensity):
             return
                 "Partial Rain\n(dry \(start)m-\(end)m, max \(String(format: "%.1f", maxIntensity))mm/h)"
+        case .error(let message):
+            return "Error\n\(message)"
+        case .loading:
+            return "Loading..."
         }
     }
 }

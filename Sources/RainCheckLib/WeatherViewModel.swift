@@ -9,6 +9,8 @@ public class WeatherViewModel: ObservableObject {
         case clearNow(minutesUntilRain: Int, location: String?)
         case rainingNow(minutesUntilLeastRain: Int, rainIntensity: Double, affectedPortion: String?)
         case partialRain(dryWindowStart: Int, dryWindowEnd: Int, maxIntensity: Double)
+        case error(String)
+        case loading
     }
 
     @Published public var status: AdvisoryStatus?
@@ -26,14 +28,21 @@ public class WeatherViewModel: ObservableObject {
 
     public func fetch() {
         Task { @MainActor in
-            self.status = nil
+            self.status = .loading
             do {
                 let service = self.weatherService
                 let result = try await service.fetchRainTimeline()
                 self.status = RainAnalyzer.analyze(
                     summary: result.timeline, routeInfo: result.routeInfo)
             } catch {
+                let errorMessage: String
+                if let weatherError = error as? WeatherServiceError {
+                    errorMessage = weatherError.localizedDescription
+                } else {
+                    errorMessage = "Failed to fetch weather data."
+                }
                 print("Error fetching forecast: \(error)")
+                self.status = .error(errorMessage)
             }
         }
 

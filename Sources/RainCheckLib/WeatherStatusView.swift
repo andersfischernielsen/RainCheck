@@ -14,6 +14,10 @@ struct WeatherStatusView: View {
             return "cloud.rain.fill"
         case .partialRain:
             return "cloud.sun.rain.fill"
+        case .error:
+            return "exclamationmark.triangle.fill"
+        case .loading:
+            return "hourglass"
         }
     }
 
@@ -63,6 +67,18 @@ struct WeatherStatusView: View {
                         .foregroundColor(.secondary)
                     Text("Current max: \(maxIntensity, specifier: "%.1f") mm/h")
                         .font(.caption)
+                        .foregroundColor(.secondary)
+
+                case .error(let message):
+                    Text("Error")
+                        .font(.body)
+                    Text(message)
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+
+                case .loading:
+                    Text("Loading weather data...")
+                        .font(.body)
                         .foregroundColor(.secondary)
                 }
             }

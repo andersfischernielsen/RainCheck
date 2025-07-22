@@ -19,7 +19,7 @@ struct RainAnalyzer {
 
         if !isRainingNow {
             if let (start, intensity) = summary.first(where: { $0.1 > 0 }) {
-                let delta = Int(start.timeIntervalSince(now) / 60)
+                let delta = max(0, Int(start.timeIntervalSince(now) / 60))
 
                 var location: String? = nil
                 if let routeInfo = routeInfo {
@@ -34,8 +34,8 @@ struct RainAnalyzer {
         } else {
             let dryPeriods = findDryWindows(in: summary)
             if let firstDryWindow = dryPeriods.first {
-                let startMinutes = Int(firstDryWindow.start.timeIntervalSince(now) / 60)
-                let endMinutes = Int(firstDryWindow.end.timeIntervalSince(now) / 60)
+                let startMinutes = max(0, Int(firstDryWindow.start.timeIntervalSince(now) / 60))
+                let endMinutes = max(0, Int(firstDryWindow.end.timeIntervalSince(now) / 60))
                 let maxIntensity =
                     summary.filter { $0.0 >= now && $0.0 <= firstDryWindow.start }.max(by: {
                         $0.1 < $1.1
@@ -46,7 +46,7 @@ struct RainAnalyzer {
                     maxIntensity: maxIntensity)
             } else {
                 let driest = summary.min { $0.1 < $1.1 }!
-                let delta = Int(driest.0.timeIntervalSince(now) / 60)
+                let delta = max(0, Int(driest.0.timeIntervalSince(now) / 60))
 
                 var affectedPortion: String? = nil
                 if let routeInfo = routeInfo {

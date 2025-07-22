@@ -32,6 +32,10 @@ public struct MenuBarLabel: View {
             return "cloud.sun.rain"
         case .partialRain(_, _, _):
             return "cloud.sun.rain.fill"
+        case .error(_):
+            return "xmark"
+        case .loading:
+            return "questionmark"
         }
     }
 
@@ -79,6 +83,10 @@ public struct MenuBarLabel: View {
                     return "\(hours)h\(remainingMinutes)m"
                 }
             }
+        case .error(_):
+            return nil
+        case .loading:
+            return nil
         }
     }
 }

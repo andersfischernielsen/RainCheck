@@ -27,7 +27,7 @@ public struct ContentView: View {
     public var body: some View {
         VStack(alignment: .leading) {
             Group {
-                if let status = viewModel.status {
+                if let status = viewModel.status, !isLoadingOrNil(status) {
                     WeatherStatusView(status: status)
                 } else {
                     HStack {
@@ -81,6 +81,15 @@ public struct ContentView: View {
         }
         .padding(12)
         .frame(width: 250)
+    }
+
+    private func isLoadingOrNil(_ status: WeatherViewModel.AdvisoryStatus) -> Bool {
+        switch status {
+        case .loading:
+            return true
+        default:
+            return false
+        }
     }
 
     private func formatLocationName(_ location: String) -> String {

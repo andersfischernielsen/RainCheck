@@ -46,8 +46,13 @@ class WeatherService: @unchecked Sendable {
     func fetchRainTimeline() async throws -> (
         timeline: [(Date, Double)], routeInfo: RainAnalyzer.RouteWeatherInfo
     ) {
-        let startLocation = Settings.getStartLocation() ?? "Copenhagen, Denmark"
-        let endLocation = Settings.getEndLocation() ?? "Copenhagen, Denmark"
+        guard let startLocation = Settings.getStartLocation(), !startLocation.isEmpty else {
+            throw WeatherServiceError.noStartLocationConfigured
+        }
+
+        guard let endLocation = Settings.getEndLocation(), !endLocation.isEmpty else {
+            throw WeatherServiceError.noEndLocationConfigured
+        }
 
         let startCoordinate = try await geocodeLocation(startLocation)
         let endCoordinate = try await geocodeLocation(endLocation)
@@ -94,8 +99,10 @@ class WeatherService: @unchecked Sendable {
 
         let (data, _) = try await session.data(for: request)
         let decoded = try JSONDecoder().decode(YrWeatherData.self, from: data)
+        let now = Date()
         return decoded.properties.timeseries.compactMap { timeseries in
             guard let time = ISO8601DateFormatter().date(from: timeseries.time) else { return nil }
+            guard time >= now else { return nil }
             let precipitation = timeseries.data.next1Hours?.details.precipitationAmountMax ?? 0.0
             return (time, precipitation)
         }.prefix(2).map { $0 }
@@ -106,8 +113,11 @@ class WeatherService: @unchecked Sendable {
 
         let baseTimeline = allWeatherData[0]
         var combined: [(Date, Double)] = []
+        let now = Date()
 
         for (index, baseEntry) in baseTimeline.enumerated() {
+            guard baseEntry.0 >= now else { continue }
+
             var maxPrecipitation = baseEntry.1
 
             for weatherData in allWeatherData {
@@ -141,8 +151,12 @@ class WeatherService: @unchecked Sendable {
         Date, Double
     )] {
         var combined: [(Date, Double)] = []
+        let now = Date()
 
         for (i, startEntry) in start.enumerated() {
+            // Skip any entries in the past
+            guard startEntry.0 >= now else { continue }
+
             if i < end.count {
                 let endEntry = end[i]
                 let maxPrecipitation = max(startEntry.1, endEntry.1)
@@ -275,7 +289,22 @@ class WeatherService: @unchecked Sendable {
     }
 }
 
-enum WeatherServiceError: Error {
+enum WeatherServiceError: Error, LocalizedError {
     case geocodingFailed
     case invalidLocation
+    case noStartLocationConfigured
+    case noEndLocationConfigured
+
+    var errorDescription: String? {
+        switch self {
+        case .geocodingFailed:
+            return "Failed to find the specified location"
+        case .invalidLocation:
+            return "Invalid location provided"
+        case .noStartLocationConfigured:
+            return "No start location configured. \nPlease set your start location in Settings."
+        case .noEndLocationConfigured:
+            return "No end location configured. \nPlease set your end location in Settings."
+        }
+    }
 }
