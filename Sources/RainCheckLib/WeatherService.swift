@@ -95,7 +95,9 @@ class WeatherService: @unchecked Sendable {
         }
 
         var request = URLRequest(url: url)
-        request.setValue("RainCheck/1.0 (contact@example.com)", forHTTPHeaderField: "User-Agent")
+        request.setValue(
+            "RainCheck/1.0 (https://github.com/andersfischernielsen/RainCheck)",
+            forHTTPHeaderField: "User-Agent")
 
         let (data, _) = try await session.data(for: request)
         let decoded = try JSONDecoder().decode(YrWeatherData.self, from: data)
