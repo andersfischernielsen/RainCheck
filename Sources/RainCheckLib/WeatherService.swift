@@ -1,7 +1,54 @@
 import CoreLocation
 import Foundation
 
-struct YrWeatherData: Decodable {
+struct YrNowcastData: Decodable {
+    let properties: Properties
+
+    struct Properties: Decodable {
+        let timeseries: [Timeseries]
+    }
+
+    struct Timeseries: Decodable {
+        let time: String
+        let data: TimeseriesData
+    }
+
+    struct TimeseriesData: Decodable {
+        let instant: Instant?
+        let next1Hours: NextHours?
+
+        struct Instant: Decodable {
+            let details: InstantDetails
+        }
+
+        struct InstantDetails: Decodable {
+            let precipitationRate: Double?
+
+            enum CodingKeys: String, CodingKey {
+                case precipitationRate = "precipitation_rate"
+            }
+        }
+
+        struct NextHours: Decodable {
+            let details: Details
+        }
+
+        struct Details: Decodable {
+            let precipitationAmount: Double?
+
+            enum CodingKeys: String, CodingKey {
+                case precipitationAmount = "precipitation_amount"
+            }
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case instant
+            case next1Hours = "next_1_hours"
+        }
+    }
+}
+
+struct YrForecastData: Decodable {
     let properties: Properties
 
     struct Properties: Decodable {
@@ -88,6 +135,51 @@ class WeatherService: @unchecked Sendable {
     private func fetchWeatherForLocation(_ coordinate: CLLocationCoordinate2D) async throws -> [(
         Date, Double
     )] {
+        async let nowcastData = fetchNowcastData(coordinate)
+        async let forecastData = fetchForecastData(coordinate)
+
+        let (nowcast, forecast) = try await (nowcastData, forecastData)
+
+        // Combine the data, prioritizing nowcast for immediate timeframes
+        return combineNowcastAndForecast(nowcast: nowcast, forecast: forecast)
+    }
+
+    @available(macOS 12.0, iOS 15.0, *)
+    private func fetchNowcastData(_ coordinate: CLLocationCoordinate2D) async throws -> [(
+        Date, Double
+    )] {
+        let urlString =
+            "https://api.met.no/weatherapi/nowcast/2.0/complete?lat=\(coordinate.latitude)&lon=\(coordinate.longitude)"
+        guard let url = URL(string: urlString) else {
+            throw WeatherServiceError.invalidLocation
+        }
+
+        var request = URLRequest(url: url)
+        request.setValue(
+            "RainCheck/1.0 github.com/andersfischernielsen/RainCheck",
+            forHTTPHeaderField: "User-Agent")
+
+        let (data, _) = try await session.data(for: request)
+        let decoded = try JSONDecoder().decode(YrNowcastData.self, from: data)
+        let now = Date().addingTimeInterval(-5 * 60)  // Subtract 5 minutes
+
+        let results = decoded.properties.timeseries.compactMap { timeseries -> (Date, Double)? in
+            guard let time = ISO8601DateFormatter().date(from: timeseries.time) else { return nil }
+            guard time >= now else { return nil }
+
+            let precipitation =
+                timeseries.data.instant?.details.precipitationRate ?? timeseries.data.next1Hours?
+                .details.precipitationAmount ?? 0.0
+            return (time, precipitation)
+        }
+
+        return results
+    }
+
+    @available(macOS 12.0, iOS 15.0, *)
+    private func fetchForecastData(_ coordinate: CLLocationCoordinate2D) async throws -> [(
+        Date, Double
+    )] {
         let urlString =
             "https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=\(coordinate.latitude)&lon=\(coordinate.longitude)"
         guard let url = URL(string: urlString) else {
@@ -96,18 +188,47 @@ class WeatherService: @unchecked Sendable {
 
         var request = URLRequest(url: url)
         request.setValue(
-            "RainCheck/1.0 (https://github.com/andersfischernielsen/RainCheck)",
+            "RainCheck/1.0 github.com/andersfischernielsen/RainCheck",
             forHTTPHeaderField: "User-Agent")
 
         let (data, _) = try await session.data(for: request)
-        let decoded = try JSONDecoder().decode(YrWeatherData.self, from: data)
-        let now = Date()
-        return decoded.properties.timeseries.compactMap { timeseries in
+        let decoded = try JSONDecoder().decode(YrForecastData.self, from: data)
+        let now = Date().addingTimeInterval(-5 * 60)
+
+        let results = decoded.properties.timeseries.compactMap { timeseries -> (Date, Double)? in
             guard let time = ISO8601DateFormatter().date(from: timeseries.time) else { return nil }
             guard time >= now else { return nil }
-            let precipitation = timeseries.data.next1Hours?.details.precipitationAmountMax ?? 0.0
+            let precipitation =
+                timeseries.data.next1Hours?.details.precipitationAmountMax ?? timeseries.data
+                .next1Hours?.details.precipitationAmount ?? 0.0
             return (time, precipitation)
-        }.prefix(2).map { $0 }
+        }.prefix(6).map { $0 }
+
+        return results
+    }
+
+    private func combineNowcastAndForecast(nowcast: [(Date, Double)], forecast: [(Date, Double)])
+        -> [(Date, Double)]
+    {
+        var combined: [(Date, Double)] = []
+        let nowcastCutoff = Date().addingTimeInterval(3 * 3600)
+
+        for entry in nowcast {
+            if entry.0 <= nowcastCutoff {
+                combined.append(entry)
+            }
+        }
+
+        for entry in forecast {
+            if entry.0 > nowcastCutoff {
+                combined.append(entry)
+            }
+        }
+
+        combined.sort { $0.0 < $1.0 }
+        let finalResults = Array(combined.prefix(30))
+
+        return finalResults
     }
 
     private func combineRouteWeatherData(_ allWeatherData: [[(Date, Double)]]) -> [(Date, Double)] {
@@ -115,7 +236,7 @@ class WeatherService: @unchecked Sendable {
 
         let baseTimeline = allWeatherData[0]
         var combined: [(Date, Double)] = []
-        let now = Date()
+        let now = Date().addingTimeInterval(-5 * 60)
 
         for (index, baseEntry) in baseTimeline.enumerated() {
             guard baseEntry.0 >= now else { continue }
@@ -144,28 +265,6 @@ class WeatherService: @unchecked Sendable {
             }
         } else {
             print("No rain expected along the route for the next 2 hours")
-        }
-
-        return combined
-    }
-
-    private func combineWeatherData(start: [(Date, Double)], end: [(Date, Double)]) -> [(
-        Date, Double
-    )] {
-        var combined: [(Date, Double)] = []
-        let now = Date()
-
-        for (i, startEntry) in start.enumerated() {
-            // Skip any entries in the past
-            guard startEntry.0 >= now else { continue }
-
-            if i < end.count {
-                let endEntry = end[i]
-                let maxPrecipitation = max(startEntry.1, endEntry.1)
-                combined.append((startEntry.0, maxPrecipitation))
-            } else {
-                combined.append(startEntry)
-            }
         }
 
         return combined

@@ -47,7 +47,10 @@ public class WeatherViewModel: ObservableObject {
         }
 
         timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 120, repeats: true) { _ in
+        let baseInterval: TimeInterval = 300
+        let randomOffset = TimeInterval.random(in: -60...60)
+        let interval = baseInterval + randomOffset
+        timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { _ in
             Task { @MainActor in
                 self.fetch()
             }
