@@ -39,6 +39,20 @@ public struct MenuBarLabel: View {
         }
     }
 
+    private func formatMinutes(_ minutes: Int) -> String {
+        if minutes < 60 {
+            return "\(minutes)m"
+        } else {
+            let hours = minutes / 60
+            let remainingMinutes = minutes % 60
+            if remainingMinutes == 0 {
+                return "\(hours)h"
+            } else {
+                return "\(hours)h\(remainingMinutes)m"
+            }
+        }
+    }
+
     private var displayText: String? {
         guard let status = status else {
             return nil
@@ -48,41 +62,11 @@ public struct MenuBarLabel: View {
         case .fullyClear:
             return nil
         case .clearNow(let minutesUntilRain, _):
-            if minutesUntilRain < 60 {
-                return "\(minutesUntilRain)m"
-            } else {
-                let hours = minutesUntilRain / 60
-                let remainingMinutes = minutesUntilRain % 60
-                if remainingMinutes == 0 {
-                    return "\(hours)h"
-                } else {
-                    return "\(hours)h\(remainingMinutes)m"
-                }
-            }
+            return formatMinutes(minutesUntilRain)
         case .rainingNow(let minutesUntilLeastRain, _, _):
-            if minutesUntilLeastRain < 60 {
-                return "\(minutesUntilLeastRain)m"
-            } else {
-                let hours = minutesUntilLeastRain / 60
-                let remainingMinutes = minutesUntilLeastRain % 60
-                if remainingMinutes == 0 {
-                    return "\(hours)h"
-                } else {
-                    return "\(hours)h\(remainingMinutes)m"
-                }
-            }
+            return formatMinutes(minutesUntilLeastRain)
         case .partialRain(let dryStart, _, _):
-            if dryStart < 60 {
-                return "\(dryStart)m"
-            } else {
-                let hours = dryStart / 60
-                let remainingMinutes = dryStart % 60
-                if remainingMinutes == 0 {
-                    return "\(hours)h"
-                } else {
-                    return "\(hours)h\(remainingMinutes)m"
-                }
-            }
+            return formatMinutes(dryStart)
         case .error(_):
             return nil
         case .loading:

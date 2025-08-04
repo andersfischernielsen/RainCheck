@@ -8,7 +8,7 @@ A macOS menu bar app that provides rain forecasts for cycling routes and daily c
 
 RainCheck is a macOS menu bar application designed specifically for cyclists and commuters who need to know when and where rain will affect their routes.
 
-Unlike traditional weather apps that show general forecasts for a single location, RainCheck analyzes weather conditions along an entire journey to provide precise information on when to ride.
+Unlike traditional weather apps that show general forecasts for a single location, RainCheck analyzes weather conditions along an entire journey to provide precise information on when to ride in 5-minute intervals (only for Nordic countries) with long-term 1-hour forecasting fallbacks.
 
 ## Features
 

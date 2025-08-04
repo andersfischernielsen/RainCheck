@@ -44,15 +44,21 @@ public class WeatherViewModel: ObservableObject {
                 print("Error fetching forecast: \(error)")
                 self.status = .error(errorMessage)
             }
-        }
 
-        timer?.invalidate()
-        let baseInterval: TimeInterval = 300
-        let randomOffset = TimeInterval.random(in: -60...60)
-        let interval = baseInterval + randomOffset
-        timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { _ in
-            Task { @MainActor in
-                self.fetch()
+            timer?.invalidate()
+            let interval: TimeInterval
+            if case .error(_) = self.status {
+                let randomOffset = TimeInterval.random(in: -10...10)
+                interval = 20 + randomOffset
+            } else {
+                let randomOffset = TimeInterval.random(in: -60...60)
+                interval = 300 + randomOffset
+            }
+
+            timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { _ in
+                Task { @MainActor in
+                    self.fetch()
+                }
             }
         }
     }
