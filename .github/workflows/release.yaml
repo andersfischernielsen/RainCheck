@@ -12,13 +12,13 @@ on:
         type: string
 
 env:
-  SWIFT_VERSION: "6.1"
-  XCODE_VERSION: "16.2"
+  SWIFT_VERSION: "6.2"
+  XCODE_VERSION: "26.0"
 
 jobs:
   build-and-release:
     name: Build and Release
-    runs-on: macos-latest
+    runs-on: macos-26
     permissions:
       contents: write
       packages: write
@@ -32,7 +32,7 @@ jobs:
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: "16.2"
+          xcode-version: "26.0"
 
       - name: Verify Swift version
         run: swift --version
